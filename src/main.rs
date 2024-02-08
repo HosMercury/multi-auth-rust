@@ -5,6 +5,7 @@
 //! ```
 use crate::web::App;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+
 mod users;
 mod web;
 

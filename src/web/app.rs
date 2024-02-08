@@ -1,5 +1,3 @@
-use std::env;
-
 use axum_login::{
     login_required,
     tower_sessions::{cookie::SameSite, Expiry, SessionManagerLayer},
@@ -7,6 +5,7 @@ use axum_login::{
 };
 use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl};
 use sqlx::{postgres::PgPoolOptions, PgPool};
+use std::env;
 use time::Duration;
 use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
 
@@ -67,7 +66,8 @@ impl App {
         // This uses `tower-sessions` to establish a layer that will provide the session
         // as a request extension.
         let pool = RedisPool::new(RedisConfig::default(), None, None, None, 6).unwrap();
-        pool.wait_for_connect().await.unwrap();
+        pool.connect();
+
         let session_store = RedisStore::new(pool);
         let session_layer = SessionManagerLayer::new(session_store)
             .with_secure(false)
