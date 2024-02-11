@@ -1,5 +1,5 @@
 use axum_login::{
-    login_required, permission_required,
+    login_required,
     tower_sessions::{cookie::SameSite, Expiry, SessionManagerLayer},
     AuthManagerLayerBuilder,
 };
