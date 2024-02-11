@@ -83,7 +83,7 @@ impl App {
 
         let app = restricted::router()
             .merge(protected::router())
-            // all above needs auth
+            // all above needs auth --
             .route_layer(login_required!(Backend, login_url = "/login"))
             .merge(auth::router())
             .merge(oauth::router())
