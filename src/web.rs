@@ -4,3 +4,4 @@ mod app;
 mod auth;
 mod oauth;
 mod protected;
+mod restricted;

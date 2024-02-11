@@ -1,5 +1,5 @@
 use axum_login::{
-    login_required,
+    login_required, permission_required,
     tower_sessions::{cookie::SameSite, Expiry, SessionManagerLayer},
     AuthManagerLayerBuilder,
 };
@@ -11,7 +11,7 @@ use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
 
 use crate::{
     users::Backend,
-    web::{auth, oauth, protected},
+    web::{auth, oauth, protected, restricted},
 };
 
 pub struct App {
@@ -79,13 +79,15 @@ impl App {
         // This combines the session layer with our backend to establish the auth
         // service which will provide the auth session as a request extension.
         let backend = Backend::new(self.db, self.client);
-        let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
+        let session_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
-        let app = protected::router()
+        let app = restricted::router()
+            .merge(protected::router())
+            // all above needs auth
             .route_layer(login_required!(Backend, login_url = "/login"))
             .merge(auth::router())
             .merge(oauth::router())
-            .layer(auth_layer);
+            .layer(session_layer);
 
         let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
         axum::serve(listener, app.into_make_service()).await?;
