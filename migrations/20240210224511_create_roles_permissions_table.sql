@@ -25,15 +25,15 @@ insert INTO groups (name)
 VALUES ('users'),('admins');
 
 insert into permissions (name)
-VALUES ('protected.read'), ('restricted.read');
+VALUES ('dashboard.read'), ('restricted.read');
 
 INSERT INTO groups_permissions (group_id, permission_id)
 VALUES (
     (SELECT id FROM groups WHERE name = 'users'),
-    (SELECT id FROM permissions WHERE name = 'protected.read')
+    (SELECT id FROM permissions WHERE name = 'dashboard.read')
 ), (
     (SELECT id FROM groups WHERE name = 'admins'),
-    (SELECT id FROM permissions WHERE name = 'restricted.read')
+    (SELECT id FROM permissions WHERE name = 'dashboard.read')
 );
 
 INSERT INTO users_groups (user_id, group_id)

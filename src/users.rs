@@ -57,6 +57,27 @@ impl std::fmt::Debug for User {
     }
 }
 
+impl User {
+    pub async fn register(&self, data: RegisterUser) -> Result<Option<Self>, Error> {
+        let user = sqlx::query_as(
+            r#"
+                INSERT INTO users (name, username, email, password)
+                VALUES ($1, $2, $3, $4)
+                RETURNING *
+            "#,
+        )
+        .bind(data.name)
+        .bind(data.username)
+        .bind(data.email)
+        .bind(data.password)
+        .fetch_one(&self.db)
+        .await
+        .map_err(Error::Sqlx)?;
+
+        Ok(Some(user));
+    }
+}
+
 impl AuthUser for User {
     type Id = Uuid;
 
@@ -161,7 +182,7 @@ impl AuthnBackend for Backend {
         match creds {
             Self::Credentials::Password(password_cred) => {
                 let user: Option<Self::User> = sqlx::query_as(
-                    "select * from users where username = $1 and password is not null",
+                    "SELECT * FROM users WHERE username = $1 AND password IS NOT NULL",
                 )
                 .bind(password_cred.username)
                 .fetch_optional(&self.db)
@@ -216,11 +237,11 @@ impl AuthnBackend for Backend {
                 // Persist user in our database so we can use `get_user`.
                 let user = sqlx::query_as(
                     r#"
-                        insert into users (name, username, email, access_token)
-                        values ($1, $2, $2, $3)
-                        on conflict(username) do update
-                        set access_token = excluded.access_token
-                        returning *
+                        INSERT INTO users (name, username, email, access_token)
+                        VALUES ($1, $2, $2, $3)
+                        ON CONFLICT(username) DO UPDATE
+                        SET access_token = excluded.access_token
+                        RETURNING *
                     "#,
                 )
                 .bind(user_info.name)
@@ -236,7 +257,7 @@ impl AuthnBackend for Backend {
     }
 
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
-        Ok(sqlx::query_as("select * from users where id = $1")
+        Ok(sqlx::query_as("SELECT * FROM users WHERE id = $1")
             .bind(user_id)
             .fetch_optional(&self.db)
             .await
@@ -267,12 +288,12 @@ impl AuthzBackend for Backend {
     ) -> Result<HashSet<Self::Permission>, Self::Error> {
         let permissions: Vec<Self::Permission> = sqlx::query_as(
             r#"
-            select distinct permissions.name
-            from users
-            join users_groups on users.id = users_groups.user_id
-            join groups_permissions on users_groups.group_id = groups_permissions.group_id
-            join permissions on groups_permissions.permission_id = permissions.id
-            where users.id = $1
+            SELECT DISTINCT permissions.name
+            FROM users
+            JOIN users_groups ON users.id = users_groups.user_id
+            JOIN groups_permissions ON users_groups.group_id = groups_permissions.group_id
+            JOIN permissions ON groups_permissions.permission_id = permissions.id
+            WHERE users.id = $1
             "#,
         )
         .bind(user.id)
@@ -282,6 +303,15 @@ impl AuthzBackend for Backend {
 
         Ok(permissions.into_iter().collect())
     }
+}
+
+pub struct RegisterUser {
+    pub name: String,
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub password2: String,
+    pub next: Option<String>,
 }
 
 // We use a type alias for convenience.

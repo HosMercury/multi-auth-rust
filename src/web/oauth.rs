@@ -54,6 +54,7 @@ mod get {
                 return (
                     StatusCode::UNAUTHORIZED,
                     LoginTemplate {
+                        title: "Login",
                         message: Some("Invalid CSRF state.".to_string()),
                         next: None,
                     },

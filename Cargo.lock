@@ -245,6 +245,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-messages"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7140a3b2de204e405fb605939f3ef47f98ef0ede0b0dcfe2bbcba5ef22b3d19a"
+dependencies = [
+ "async-trait",
+ "axum-core",
+ "http 1.0.0",
+ "parking_lot",
+ "serde",
+ "tower",
+ "tower-sessions-core",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1256,6 +1271,7 @@ dependencies = [
  "async-trait",
  "axum",
  "axum-login",
+ "axum-messages",
  "dotenvy",
  "http 1.0.0",
  "hyper 1.1.0",

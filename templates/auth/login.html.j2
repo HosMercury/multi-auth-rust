@@ -1,0 +1,42 @@
+{% extends "./layouts/guest.html.j2" %}
+
+{% block content %}
+{# <p>Log in with either a username and password or OAuth (via Google)</p> #}
+<div class="d-flex justify-content-center align-items-centercontainer-fluid my-4">
+  <div class="m-4 mt-6 p-4 bg-dark text-white w-50 p-2 border rounded ">
+    <form action="/login/password" method="post">
+      <fieldset>
+        <legend class="text-center my-2 mb-4">User login</legend>
+        <p>
+          <label for="username" class="w-25">Username</label>
+          <input name="username" id="username" value="ferris" />
+        </p>
+        <p>
+          <label for="password" class="w-25">Password</label>
+          <input name="password" id="password" type="password" value="hunter42" />
+        </p>
+      </fieldset>
+      <div class="d-flex justify-content-center">
+
+        <input type="submit" value="login" />
+      </div>
+
+      {% if let Some(next) = next %}
+      <input type="hidden" name="next" value="{{next}}" />
+      {% endif %}
+    </form>
+
+
+    <form action="/login/oauth" method="post">
+      <input type="submit" value="Google Login" class="btn btn-sm btn-danger my-2" />
+
+      {% if let Some(next) = next %}
+      <input type="hidden" name="next" value="{{next}}" />
+      {% endif %}
+    </form>
+
+    <a href="/register" class="text-white m-2">Register</a>
+
+  </div>
+</div>
+{% endblock content %}

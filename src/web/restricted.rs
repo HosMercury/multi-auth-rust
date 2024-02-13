@@ -7,7 +7,8 @@ use crate::users::{AuthSession, Backend};
 #[derive(Template)]
 #[template(path = "restricted.html.j2")]
 struct RestrictedTemplate<'a> {
-    username: &'a str,
+    title: &'static str,
+    username: Option<&'a str>,
 }
 
 pub fn router() -> Router<()> {
@@ -22,7 +23,7 @@ pub fn router() -> Router<()> {
             .route_layer(permission_required!(
                 Backend,
                 login_url = "/login",
-                "protected.read",
+                "dashboard.read",
             )),
     )
 }
@@ -33,7 +34,8 @@ mod get {
     pub async fn restricted(auth_session: AuthSession) -> impl IntoResponse {
         match auth_session.user {
             Some(user) => RestrictedTemplate {
-                username: &user.username,
+                title: "Restricted",
+                username: Some(&user.username),
             }
             .into_response(),
 

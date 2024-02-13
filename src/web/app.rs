@@ -11,12 +11,17 @@ use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
 
 use crate::{
     users::Backend,
-    web::{auth, oauth, protected, restricted},
+    web::{auth, dashboard, oauth, restricted},
 };
 
 pub struct App {
     db: PgPool,
     client: BasicClient,
+}
+
+#[derive(Clone)]
+struct AppState {
+    db: PgPool,
 }
 
 impl App {
@@ -78,16 +83,22 @@ impl App {
         //
         // This combines the session layer with our backend to establish the auth
         // service which will provide the auth session as a request extension.
-        let backend = Backend::new(self.db, self.client);
+        let backend = Backend::new(self.db.clone(), self.client);
         let session_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
+        /////////////////////////   State   /////////////////////////
+        let state = AppState {
+            db: self.db.clone(),
+        };
+
         let app = restricted::router()
-            .merge(protected::router())
-            // all above needs auth --
+            .merge(dashboard::router())
+            // all above need auth --
             .route_layer(login_required!(Backend, login_url = "/login"))
             .merge(auth::router())
             .merge(oauth::router())
-            .layer(session_layer);
+            .layer(session_layer)
+            .with_state(state);
 
         let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
         axum::serve(listener, app.into_make_service()).await?;

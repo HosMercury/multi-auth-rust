@@ -14,8 +14,17 @@ use crate::{users::AuthSession, web::oauth::CSRF_STATE_KEY};
 pub const NEXT_URL_KEY: &str = "auth.next-url";
 
 #[derive(Template)]
-#[template(path = "login.html.j2")]
+#[template(path = "auth/login.html.j2")]
 pub struct LoginTemplate {
+    pub title: &'static str,
+    pub message: Option<String>,
+    pub next: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "auth/register.html.j2")]
+pub struct RegisterTemplate {
+    pub title: &'static str,
     pub message: Option<String>,
     pub next: Option<String>,
 }
@@ -32,10 +41,16 @@ pub fn router() -> Router<()> {
         .route("/login/password", post(self::post::login::password))
         .route("/login/oauth", post(self::post::login::oauth))
         .route("/login", get(self::get::login))
+        .route(
+            "/register",
+            get(self::get::register).post(self::get::register),
+        )
         .route("/logout", post(self::post::logout))
 }
 
 mod post {
+    use crate::users::RegisterUser;
+
     use super::*;
 
     pub(super) mod login {
@@ -53,6 +68,7 @@ mod post {
                 Ok(Some(user)) => user,
                 Ok(None) => {
                     return LoginTemplate {
+                        title: "Login",
                         message: Some("Invalid credentials.".to_string()),
                         next: creds.next,
                     }
@@ -93,6 +109,19 @@ mod post {
         }
     }
 
+    pub async fn register(mut auth_session: AuthSession, Form(data): Form<RegisterUser>) {
+        let RegisterUser {
+            name,
+            username,
+            email,
+            password,
+            password2,
+            next,
+        } = data;
+
+        
+    }
+
     pub async fn logout(mut auth_session: AuthSession) -> impl IntoResponse {
         match auth_session.logout().await {
             Ok(_) => Redirect::to("/login").into_response(),
@@ -106,6 +135,15 @@ mod get {
 
     pub async fn login(Query(NextUrl { next }): Query<NextUrl>) -> LoginTemplate {
         LoginTemplate {
+            title: "Login",
+            message: None,
+            next,
+        }
+    }
+
+    pub async fn register(Query(NextUrl { next }): Query<NextUrl>) -> RegisterTemplate {
+        RegisterTemplate {
+            title: "Register",
             message: None,
             next,
         }

@@ -25,3 +25,4 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 axum-login = "0.13.1"
 tower-sessions-redis-store = "0.10.0"
 uuid = { version = "1.7.0", features = ["serde"] }
+axum-messages = "0.3.0"
